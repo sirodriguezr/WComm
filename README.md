@@ -11,7 +11,7 @@ Design and evaluate experimentally a system for the wireless digital transmissio
 1. System operation frequency and power as allowed
 by Colombian law.
 
-2. Channel bandwidth: 10kHz maximum (Out-of-Band Emission (OOBE) with Power Spectral Density (PSD) 25dB below maximum in the adjacent 1.1 Project Proposal channels, 50 dB elsewhere).
+2. Channel bandwidth: 10kHz maximum (Out-of-Band Emission (OOBE) with Power Spectral Density (PSD) 25dB below maximum in the adjacent 50 dB elsewhere).
 
 3. Digital modulation.
 
