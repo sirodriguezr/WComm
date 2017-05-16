@@ -46,7 +46,7 @@
     </param>
     <param>
       <key>id</key>
-      <value>Simulation</value>
+      <value>usrp_txrx</value>
     </param>
     <param>
       <key>max_nouts</key>
