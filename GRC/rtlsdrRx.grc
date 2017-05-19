@@ -120,7 +120,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1288, 12)</value>
+      <value>(1192, 12)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -136,10 +136,14 @@
     </param>
   </block>
   <block>
-    <key>variable</key>
+    <key>variable_qtgui_entry</key>
     <param>
       <key>comment</key>
       <value></value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>10</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -147,7 +151,11 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1200, 12)</value>
+      <value>(1280, 12)</value>
+    </param>
+    <param>
+      <key>gui_hint</key>
+      <value></value>
     </param>
     <param>
       <key>_rotation</key>
@@ -158,8 +166,12 @@
       <value>Gain_rx</value>
     </param>
     <param>
-      <key>value</key>
-      <value>10</value>
+      <key>label</key>
+      <value>Gain_rx</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>int</value>
     </param>
   </block>
   <block>
@@ -314,6 +326,45 @@
     </param>
   </block>
   <block>
+    <key>variable_qtgui_entry</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>46</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1400, 12)</value>
+    </param>
+    <param>
+      <key>gui_hint</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>ppm</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>ppm</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>int</value>
+    </param>
+  </block>
+  <block>
     <key>variable</key>
     <param>
       <key>comment</key>
@@ -364,7 +415,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>10</value>
+      <value>20</value>
     </param>
   </block>
   <block>
@@ -391,7 +442,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>400e3</value>
+      <value>1e6</value>
     </param>
   </block>
   <block>
@@ -418,7 +469,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>2</value>
+      <value>4</value>
     </param>
   </block>
   <block>
@@ -437,7 +488,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>0</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1212,7 +1263,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1360, 324)</value>
+      <value>(1384, 412)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2688,7 +2739,7 @@ this library.</value>
     </param>
     <param>
       <key>corr0</key>
-      <value>60</value>
+      <value>ppm</value>
     </param>
     <param>
       <key>freq0</key>
@@ -4137,7 +4188,7 @@ this library.</value>
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1920, 284)</value>
+      <value>(1104, 340)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -4515,6 +4566,12 @@ this library.</value>
   <connection>
     <source_block_id>rtlsdr_source_0</source_block_id>
     <sink_block_id>digital_fll_band_edge_cc_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>rtlsdr_source_0</source_block_id>
+    <sink_block_id>virtual_sink_0_0_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
