@@ -5,7 +5,7 @@
 # Title: Simulation
 # Author: Santiago Rodriguez
 # Description: Preliminary result for WComm final project
-# Generated: Mon May 15 21:24:10 2017
+# Generated: Thu May 18 20:13:04 2017
 ##################################################
 
 if __name__ == '__main__':
@@ -19,6 +19,7 @@ if __name__ == '__main__':
             print "Warning: failed to XInitThreads()"
 
 from PyQt4 import Qt
+from gnuradio import analog
 from gnuradio import audio
 from gnuradio import blocks
 from gnuradio import digital
@@ -66,7 +67,7 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
         # Variables
         ##################################################
         self.sps = sps = 4
-        self.samp_rate = samp_rate = 200e3
+        self.samp_rate = samp_rate = 1e6
         self.pyl_lenght = pyl_lenght = 20
         self.audio_sr = audio_sr = 16e3
         self.Gain_tx = Gain_tx = 0
@@ -260,8 +261,11 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
         	log=False,
         )
         self.blocks_wavfile_sink_0 = blocks.wavfile_sink('audio_Rx', 1, int(audio_sr), 8)
+        self.blocks_multiply_const_vxx_0_0 = blocks.multiply_const_vcc((0, ))
+        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc((0.1, ))
         self.blocks_float_to_char_0 = blocks.float_to_char(1, 2**8)
         self.blocks_char_to_float_0 = blocks.char_to_float(1, 2**8)
+        self.blocks_add_xx_0 = blocks.add_vcc(1)
         self.blks2_packet_encoder_0 = grc_blks2.packet_mod_b(grc_blks2.packet_encoder(
         		samples_per_symbol=sps,
         		bits_per_symbol=1,
@@ -277,19 +281,24 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
         		callback=lambda ok, payload: self.blks2_packet_decoder_0.recv_pkt(ok, payload),
         	),
         )
-        self.audio_source_0 = audio.source(16000, '', True)
+        self.audio_source_0 = audio.source(16000, '', False)
+        self.analog_sig_source_x_0 = analog.sig_source_c(samp_rate, analog.GR_CONST_WAVE, 1000, 1, 0)
 
         ##################################################
         # Connections
         ##################################################
+        self.connect((self.analog_sig_source_x_0, 0), (self.blocks_multiply_const_vxx_0_0, 0))
         self.connect((self.audio_source_0, 0), (self.blocks_float_to_char_0, 0))
         self.connect((self.blks2_packet_decoder_0, 0), (self.blocks_char_to_float_0, 0))
         self.connect((self.blks2_packet_encoder_0, 0), (self.digital_gmsk_mod_0, 0))
+        self.connect((self.blocks_add_xx_0, 0), (self.uhd_usrp_sink_0, 0))
         self.connect((self.blocks_char_to_float_0, 0), (self.blocks_wavfile_sink_0, 0))
         self.connect((self.blocks_char_to_float_0, 0), (self.qtgui_time_sink_x_0_0, 0))
         self.connect((self.blocks_float_to_char_0, 0), (self.blks2_packet_encoder_0, 0))
+        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_add_xx_0, 0))
+        self.connect((self.blocks_multiply_const_vxx_0_0, 0), (self.blocks_add_xx_0, 1))
         self.connect((self.digital_gmsk_demod_0, 0), (self.blks2_packet_decoder_0, 0))
-        self.connect((self.digital_gmsk_mod_0, 0), (self.uhd_usrp_sink_0, 0))
+        self.connect((self.digital_gmsk_mod_0, 0), (self.blocks_multiply_const_vxx_0, 0))
         self.connect((self.uhd_usrp_source_0, 0), (self.digital_gmsk_demod_0, 0))
         self.connect((self.uhd_usrp_source_0, 0), (self.qtgui_const_sink_x_0, 0))
         self.connect((self.uhd_usrp_source_0, 0), (self.qtgui_freq_sink_x_0, 0))
@@ -314,6 +323,7 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
         self.uhd_usrp_sink_0.set_samp_rate(self.samp_rate)
         self.qtgui_time_sink_x_0_0.set_samp_rate(self.samp_rate)
         self.qtgui_freq_sink_x_0.set_frequency_range(0, self.samp_rate)
+        self.analog_sig_source_x_0.set_sampling_freq(self.samp_rate)
 
     def get_pyl_lenght(self):
         return self.pyl_lenght
