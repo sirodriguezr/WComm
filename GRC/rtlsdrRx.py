@@ -5,7 +5,7 @@
 # Title: Simulation
 # Author: Santiago Rodriguez
 # Description: Preliminary result for WComm final project
-# Generated: Mon May 15 21:31:30 2017
+# Generated: Thu May 18 20:15:19 2017
 ##################################################
 
 if __name__ == '__main__':
@@ -19,7 +19,6 @@ if __name__ == '__main__':
             print "Warning: failed to XInitThreads()"
 
 from PyQt4 import Qt
-from gnuradio import analog
 from gnuradio import blocks
 from gnuradio import digital
 from gnuradio import eng_notation
@@ -66,11 +65,12 @@ class rtlsdrRx(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.sps = sps = 2
+        self.sps = sps = 4
         self.nfilts = nfilts = 32
         self.EBW = EBW = .5
-        self.samp_rate = samp_rate = 400e3
-        self.pyl_lenght = pyl_lenght = 10
+        self.samp_rate = samp_rate = 1e6
+        self.pyl_lenght = pyl_lenght = 20
+        self.ppm = ppm = 46
         self.audio_sr = audio_sr = 16e3
 
         self.RRC_filter_taps = RRC_filter_taps = firdes.root_raised_cosine(nfilts, nfilts, 1.0, EBW, 5*sps*nfilts)
@@ -81,6 +81,13 @@ class rtlsdrRx(gr.top_block, Qt.QWidget):
         ##################################################
         # Blocks
         ##################################################
+        self._ppm_tool_bar = Qt.QToolBar(self)
+        self._ppm_tool_bar.addWidget(Qt.QLabel('ppm'+": "))
+        self._ppm_line_edit = Qt.QLineEdit(str(self.ppm))
+        self._ppm_tool_bar.addWidget(self._ppm_line_edit)
+        self._ppm_line_edit.returnPressed.connect(
+        	lambda: self.set_ppm(int(str(self._ppm_line_edit.text().toAscii()))))
+        self.top_layout.addWidget(self._ppm_tool_bar)
         self.controls = Qt.QTabWidget()
         self.controls_widget_0 = Qt.QWidget()
         self.controls_layout_0 = Qt.QBoxLayout(Qt.QBoxLayout.TopToBottom, self.controls_widget_0)
@@ -98,10 +105,17 @@ class rtlsdrRx(gr.top_block, Qt.QWidget):
         self.controls_layout_2.addLayout(self.controls_grid_layout_2)
         self.controls.addTab(self.controls_widget_2, 'Const')
         self.top_layout.addWidget(self.controls)
+        self._Gain_rx_tool_bar = Qt.QToolBar(self)
+        self._Gain_rx_tool_bar.addWidget(Qt.QLabel('Gain_rx'+": "))
+        self._Gain_rx_line_edit = Qt.QLineEdit(str(self.Gain_rx))
+        self._Gain_rx_tool_bar.addWidget(self._Gain_rx_line_edit)
+        self._Gain_rx_line_edit.returnPressed.connect(
+        	lambda: self.set_Gain_rx(int(str(self._Gain_rx_line_edit.text().toAscii()))))
+        self.top_layout.addWidget(self._Gain_rx_tool_bar)
         self.rtlsdr_source_0 = osmosdr.source( args="numchan=" + str(1) + " " + '' )
         self.rtlsdr_source_0.set_sample_rate(samp_rate)
         self.rtlsdr_source_0.set_center_freq(CF, 0)
-        self.rtlsdr_source_0.set_freq_corr(60, 0)
+        self.rtlsdr_source_0.set_freq_corr(ppm, 0)
         self.rtlsdr_source_0.set_dc_offset_mode(0, 0)
         self.rtlsdr_source_0.set_iq_balance_mode(0, 0)
         self.rtlsdr_source_0.set_gain_mode(False, 0)
@@ -259,19 +273,17 @@ class rtlsdrRx(gr.top_block, Qt.QWidget):
         		callback=lambda ok, payload: self.blks2_packet_decoder_0.recv_pkt(ok, payload),
         	),
         )
-        self.analog_pll_carriertracking_cc_0 = analog.pll_carriertracking_cc(2*numpy.pi/100, 10, -10)
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.analog_pll_carriertracking_cc_0, 0), (self.digital_gmsk_demod_0, 0))
-        self.connect((self.analog_pll_carriertracking_cc_0, 0), (self.qtgui_const_sink_x_0, 0))
-        self.connect((self.analog_pll_carriertracking_cc_0, 0), (self.qtgui_freq_sink_x_0, 0))
         self.connect((self.blks2_packet_decoder_0, 0), (self.blocks_char_to_float_0, 0))
         self.connect((self.blocks_char_to_float_0, 0), (self.blocks_wavfile_sink_0, 0))
         self.connect((self.blocks_char_to_float_0, 0), (self.qtgui_time_sink_x_0_0, 0))
         self.connect((self.digital_gmsk_demod_0, 0), (self.blks2_packet_decoder_0, 0))
-        self.connect((self.rtlsdr_source_0, 0), (self.analog_pll_carriertracking_cc_0, 0))
+        self.connect((self.rtlsdr_source_0, 0), (self.digital_gmsk_demod_0, 0))
+        self.connect((self.rtlsdr_source_0, 0), (self.qtgui_const_sink_x_0, 0))
+        self.connect((self.rtlsdr_source_0, 0), (self.qtgui_freq_sink_x_0, 0))
 
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "rtlsdrRx")
@@ -311,6 +323,14 @@ class rtlsdrRx(gr.top_block, Qt.QWidget):
     def set_pyl_lenght(self, pyl_lenght):
         self.pyl_lenght = pyl_lenght
 
+    def get_ppm(self):
+        return self.ppm
+
+    def set_ppm(self, ppm):
+        self.ppm = ppm
+        Qt.QMetaObject.invokeMethod(self._ppm_line_edit, "setText", Qt.Q_ARG("QString", str(self.ppm)))
+        self.rtlsdr_source_0.set_freq_corr(self.ppm, 0)
+
     def get_audio_sr(self):
         return self.audio_sr
 
@@ -328,6 +348,7 @@ class rtlsdrRx(gr.top_block, Qt.QWidget):
 
     def set_Gain_rx(self, Gain_rx):
         self.Gain_rx = Gain_rx
+        Qt.QMetaObject.invokeMethod(self._Gain_rx_line_edit, "setText", Qt.Q_ARG("QString", str(self.Gain_rx)))
         self.rtlsdr_source_0.set_gain(self.Gain_rx, 0)
 
     def get_CF(self):
