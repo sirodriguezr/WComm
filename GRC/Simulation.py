@@ -5,7 +5,7 @@
 # Title: Simulation
 # Author: Santiago Rodriguez
 # Description: Preliminary result for WComm final project
-# Generated: Mon May 15 20:57:46 2017
+# Generated: Tue May 16 17:57:08 2017
 ##################################################
 
 if __name__ == '__main__':
@@ -25,14 +25,12 @@ from gnuradio import digital
 from gnuradio import eng_notation
 from gnuradio import gr
 from gnuradio import qtgui
-from gnuradio import uhd
 from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
 from grc_gnuradio import blks2 as grc_blks2
 from optparse import OptionParser
 import sip
 import sys
-import time
 from gnuradio import qtgui
 
 
@@ -65,13 +63,10 @@ class Simulation(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.sps = sps = 4
-        self.samp_rate = samp_rate = 200e3
+        self.sps = sps = 10
+        self.samp_rate = samp_rate = 100e3
         self.pyl_lenght = pyl_lenght = 20
         self.audio_sr = audio_sr = 16e3
-        self.Gain_tx = Gain_tx = 0
-        self.Gain_rx = Gain_rx = 0
-        self.CF = CF = 920e6
 
         ##################################################
         # Blocks
@@ -93,26 +88,6 @@ class Simulation(gr.top_block, Qt.QWidget):
         self.controls_layout_2.addLayout(self.controls_grid_layout_2)
         self.controls.addTab(self.controls_widget_2, 'Const')
         self.top_layout.addWidget(self.controls)
-        self.uhd_usrp_source_0 = uhd.usrp_source(
-        	",".join(("", "")),
-        	uhd.stream_args(
-        		cpu_format="fc32",
-        		channels=range(1),
-        	),
-        )
-        self.uhd_usrp_source_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_source_0.set_center_freq(CF, 0)
-        self.uhd_usrp_source_0.set_gain(Gain_rx, 0)
-        self.uhd_usrp_sink_0 = uhd.usrp_sink(
-        	",".join(("", "")),
-        	uhd.stream_args(
-        		cpu_format="fc32",
-        		channels=range(1),
-        	),
-        )
-        self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_sink_0.set_center_freq(CF, 0)
-        self.uhd_usrp_sink_0.set_gain(Gain_tx, 0)
         self.qtgui_time_sink_x_0_0 = qtgui.time_sink_f(
         	1024, #size
         	samp_rate, #samp_rate
@@ -289,10 +264,9 @@ class Simulation(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_char_to_float_0, 0), (self.qtgui_time_sink_x_0_0, 0))
         self.connect((self.blocks_float_to_char_0, 0), (self.blks2_packet_encoder_0, 0))
         self.connect((self.digital_gmsk_demod_0, 0), (self.blks2_packet_decoder_0, 0))
-        self.connect((self.digital_gmsk_mod_0, 0), (self.uhd_usrp_sink_0, 0))
-        self.connect((self.uhd_usrp_source_0, 0), (self.digital_gmsk_demod_0, 0))
-        self.connect((self.uhd_usrp_source_0, 0), (self.qtgui_const_sink_x_0, 0))
-        self.connect((self.uhd_usrp_source_0, 0), (self.qtgui_freq_sink_x_0, 0))
+        self.connect((self.digital_gmsk_mod_0, 0), (self.digital_gmsk_demod_0, 0))
+        self.connect((self.digital_gmsk_mod_0, 0), (self.qtgui_const_sink_x_0, 0))
+        self.connect((self.digital_gmsk_mod_0, 0), (self.qtgui_freq_sink_x_0, 0))
 
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "Simulation")
@@ -310,8 +284,6 @@ class Simulation(gr.top_block, Qt.QWidget):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.uhd_usrp_source_0.set_samp_rate(self.samp_rate)
-        self.uhd_usrp_sink_0.set_samp_rate(self.samp_rate)
         self.qtgui_time_sink_x_0_0.set_samp_rate(self.samp_rate)
         self.qtgui_freq_sink_x_0.set_frequency_range(0, self.samp_rate)
 
@@ -326,30 +298,6 @@ class Simulation(gr.top_block, Qt.QWidget):
 
     def set_audio_sr(self, audio_sr):
         self.audio_sr = audio_sr
-
-    def get_Gain_tx(self):
-        return self.Gain_tx
-
-    def set_Gain_tx(self, Gain_tx):
-        self.Gain_tx = Gain_tx
-        self.uhd_usrp_sink_0.set_gain(self.Gain_tx, 0)
-
-
-    def get_Gain_rx(self):
-        return self.Gain_rx
-
-    def set_Gain_rx(self, Gain_rx):
-        self.Gain_rx = Gain_rx
-        self.uhd_usrp_source_0.set_gain(self.Gain_rx, 0)
-
-
-    def get_CF(self):
-        return self.CF
-
-    def set_CF(self, CF):
-        self.CF = CF
-        self.uhd_usrp_source_0.set_center_freq(self.CF, 0)
-        self.uhd_usrp_sink_0.set_center_freq(self.CF, 0)
 
 
 def main(top_block_cls=Simulation, options=None):
