@@ -5,7 +5,7 @@
 # Title: Simulation
 # Author: Santiago Rodriguez
 # Description: Preliminary result for WComm final project
-# Generated: Tue May 16 17:57:08 2017
+# Generated: Tue May 23 21:12:20 2017
 ##################################################
 
 if __name__ == '__main__':
@@ -64,6 +64,7 @@ class Simulation(gr.top_block, Qt.QWidget):
         # Variables
         ##################################################
         self.sps = sps = 10
+        self.scale = scale = 2**7
         self.samp_rate = samp_rate = 100e3
         self.pyl_lenght = pyl_lenght = 20
         self.audio_sr = audio_sr = 16e3
@@ -235,8 +236,8 @@ class Simulation(gr.top_block, Qt.QWidget):
         	log=False,
         )
         self.blocks_wavfile_sink_0 = blocks.wavfile_sink('audio_Rx', 1, int(audio_sr), 8)
-        self.blocks_float_to_char_0 = blocks.float_to_char(1, 2**8)
-        self.blocks_char_to_float_0 = blocks.char_to_float(1, 2**8)
+        self.blocks_float_to_char_0 = blocks.float_to_char(1, scale)
+        self.blocks_char_to_float_0 = blocks.char_to_float(1, scale)
         self.blks2_packet_encoder_0 = grc_blks2.packet_mod_b(grc_blks2.packet_encoder(
         		samples_per_symbol=sps,
         		bits_per_symbol=1,
@@ -278,6 +279,14 @@ class Simulation(gr.top_block, Qt.QWidget):
 
     def set_sps(self, sps):
         self.sps = sps
+
+    def get_scale(self):
+        return self.scale
+
+    def set_scale(self, scale):
+        self.scale = scale
+        self.blocks_float_to_char_0.set_scale(self.scale)
+        self.blocks_char_to_float_0.set_scale(self.scale)
 
     def get_samp_rate(self):
         return self.samp_rate
