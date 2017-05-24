@@ -5,7 +5,7 @@
 # Title: Simulation
 # Author: Santiago Rodriguez
 # Description: Preliminary result for WComm final project
-# Generated: Sat May 13 19:46:36 2017
+# Generated: Tue May 23 21:17:52 2017
 ##################################################
 
 if __name__ == '__main__':
@@ -62,6 +62,8 @@ class audio_f2s(gr.top_block, Qt.QWidget):
         # Variables
         ##################################################
         self.sps = sps = 2
+        self.scalef = scalef = 2**16
+        self.scale = scale = 2**7
         self.samp_rate = samp_rate = 100e3
         self.audio_sr = audio_sr = 16e3
 
@@ -116,18 +118,22 @@ class audio_f2s(gr.top_block, Qt.QWidget):
         self._qtgui_time_sink_x_0_win = sip.wrapinstance(self.qtgui_time_sink_x_0.pyqwidget(), Qt.QWidget)
         self.top_layout.addWidget(self._qtgui_time_sink_x_0_win)
         self.blocks_wavfile_sink_0_0 = blocks.wavfile_sink('test_audio_rx', 1, int(audio_sr), 8)
-        self.blocks_float_to_char_0 = blocks.float_to_char(1, 2**8)
-        self.blocks_char_to_float_0 = blocks.char_to_float(1, 2**8)
+        self.blocks_short_to_float_0_0 = blocks.short_to_float(1, scalef)
+        self.blocks_short_to_char_0 = blocks.short_to_char(1)
+        self.blocks_float_to_short_0 = blocks.float_to_short(1, scalef)
+        self.blocks_char_to_short_0_0 = blocks.char_to_short(1)
         self.audio_source_0 = audio.source(16000, '', True)
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.audio_source_0, 0), (self.blocks_float_to_char_0, 0))
+        self.connect((self.audio_source_0, 0), (self.blocks_float_to_short_0, 0))
         self.connect((self.audio_source_0, 0), (self.qtgui_time_sink_x_0, 0))
-        self.connect((self.blocks_char_to_float_0, 0), (self.blocks_wavfile_sink_0_0, 0))
-        self.connect((self.blocks_char_to_float_0, 0), (self.qtgui_time_sink_x_0, 1))
-        self.connect((self.blocks_float_to_char_0, 0), (self.blocks_char_to_float_0, 0))
+        self.connect((self.blocks_char_to_short_0_0, 0), (self.blocks_short_to_float_0_0, 0))
+        self.connect((self.blocks_float_to_short_0, 0), (self.blocks_short_to_char_0, 0))
+        self.connect((self.blocks_short_to_char_0, 0), (self.blocks_char_to_short_0_0, 0))
+        self.connect((self.blocks_short_to_float_0_0, 0), (self.blocks_wavfile_sink_0_0, 0))
+        self.connect((self.blocks_short_to_float_0_0, 0), (self.qtgui_time_sink_x_0, 1))
 
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "audio_f2s")
@@ -139,6 +145,20 @@ class audio_f2s(gr.top_block, Qt.QWidget):
 
     def set_sps(self, sps):
         self.sps = sps
+
+    def get_scalef(self):
+        return self.scalef
+
+    def set_scalef(self, scalef):
+        self.scalef = scalef
+        self.blocks_short_to_float_0_0.set_scale(self.scalef)
+        self.blocks_float_to_short_0.set_scale(self.scalef)
+
+    def get_scale(self):
+        return self.scale
+
+    def set_scale(self, scale):
+        self.scale = scale
 
     def get_samp_rate(self):
         return self.samp_rate
