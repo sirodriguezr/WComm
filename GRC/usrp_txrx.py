@@ -5,7 +5,7 @@
 # Title: Simulation
 # Author: Santiago Rodriguez
 # Description: Preliminary result for WComm final project
-# Generated: Thu May 18 20:13:04 2017
+# Generated: Sat May 20 19:02:21 2017
 ##################################################
 
 if __name__ == '__main__':
@@ -66,13 +66,14 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.sps = sps = 4
-        self.samp_rate = samp_rate = 1e6
-        self.pyl_lenght = pyl_lenght = 20
+        self.sps = sps = 16
+        self.samp_rate = samp_rate = 2e6
+        self.pyl_lenght = pyl_lenght = 512
         self.audio_sr = audio_sr = 16e3
-        self.Gain_tx = Gain_tx = 0
+        self.Gain_tx = Gain_tx = 40
         self.Gain_rx = Gain_rx = 0
         self.CF = CF = 920e6
+        self.BT = BT = 0.5
 
         ##################################################
         # Blocks
@@ -247,7 +248,7 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
         self.controls_grid_layout_2.addWidget(self._qtgui_const_sink_x_0_win,  0,0,1,1)
         self.digital_gmsk_mod_0 = digital.gmsk_mod(
         	samples_per_symbol=sps,
-        	bt=0.35,
+        	bt=BT,
         	verbose=False,
         	log=False,
         )
@@ -262,7 +263,7 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
         )
         self.blocks_wavfile_sink_0 = blocks.wavfile_sink('audio_Rx', 1, int(audio_sr), 8)
         self.blocks_multiply_const_vxx_0_0 = blocks.multiply_const_vcc((0, ))
-        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc((0.1, ))
+        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc((0.8, ))
         self.blocks_float_to_char_0 = blocks.float_to_char(1, 2**8)
         self.blocks_char_to_float_0 = blocks.char_to_float(1, 2**8)
         self.blocks_add_xx_0 = blocks.add_vcc(1)
@@ -360,6 +361,12 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
         self.CF = CF
         self.uhd_usrp_source_0.set_center_freq(self.CF, 0)
         self.uhd_usrp_sink_0.set_center_freq(self.CF, 0)
+
+    def get_BT(self):
+        return self.BT
+
+    def set_BT(self, BT):
+        self.BT = BT
 
 
 def main(top_block_cls=usrp_txrx, options=None):
