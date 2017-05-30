@@ -5,7 +5,7 @@
 # Title: Simulation
 # Author: Santiago Rodriguez
 # Description: Preliminary result for WComm final project
-# Generated: Thu May 18 20:15:19 2017
+# Generated: Sun May 28 18:34:05 2017
 ##################################################
 
 if __name__ == '__main__':
@@ -19,9 +19,11 @@ if __name__ == '__main__':
             print "Warning: failed to XInitThreads()"
 
 from PyQt4 import Qt
+from gnuradio import audio
 from gnuradio import blocks
 from gnuradio import digital
 from gnuradio import eng_notation
+from gnuradio import filter
 from gnuradio import gr
 from gnuradio import qtgui
 from gnuradio.eng_option import eng_option
@@ -65,12 +67,13 @@ class rtlsdrRx(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.sps = sps = 4
+        self.sps = sps = 32
         self.nfilts = nfilts = 32
-        self.EBW = EBW = .5
-        self.samp_rate = samp_rate = 1e6
-        self.pyl_lenght = pyl_lenght = 20
-        self.ppm = ppm = 46
+        self.EBW = EBW = .3
+        self.scale = scale = 2**15
+        self.samp_rate = samp_rate = 2e6
+        self.pyl_lenght = pyl_lenght = 512
+        self.ppm = ppm = 57
         self.audio_sr = audio_sr = 16e3
 
         self.RRC_filter_taps = RRC_filter_taps = firdes.root_raised_cosine(nfilts, nfilts, 1.0, EBW, 5*sps*nfilts)
@@ -125,6 +128,12 @@ class rtlsdrRx(gr.top_block, Qt.QWidget):
         self.rtlsdr_source_0.set_antenna('', 0)
         self.rtlsdr_source_0.set_bandwidth(0, 0)
 
+        self.rational_resampler_xxx_1 = filter.rational_resampler_fff(
+                interpolation=2,
+                decimation=1,
+                taps=None,
+                fractional_bw=None,
+        )
         self.qtgui_time_sink_x_0_0 = qtgui.time_sink_f(
         	1024, #size
         	samp_rate, #samp_rate
@@ -265,7 +274,10 @@ class rtlsdrRx(gr.top_block, Qt.QWidget):
         	verbose=False,
         	log=False,
         )
-        self.blocks_wavfile_sink_0 = blocks.wavfile_sink('audio_Rx', 1, int(audio_sr), 8)
+        self.blocks_probe_rate_0 = blocks.probe_rate(gr.sizeof_float*1, 500.0, 0.15)
+        self.blocks_message_debug_0 = blocks.message_debug()
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_gr_complex*1, 'gmsk_rx', False)
+        self.blocks_file_sink_0.set_unbuffered(False)
         self.blocks_char_to_float_0 = blocks.char_to_float(1, 2**8)
         self.blks2_packet_decoder_0 = grc_blks2.packet_demod_b(grc_blks2.packet_decoder(
         		access_code='',
@@ -273,14 +285,19 @@ class rtlsdrRx(gr.top_block, Qt.QWidget):
         		callback=lambda ok, payload: self.blks2_packet_decoder_0.recv_pkt(ok, payload),
         	),
         )
+        self.audio_sink_0 = audio.sink(16000, '', True)
 
         ##################################################
         # Connections
         ##################################################
+        self.msg_connect((self.blocks_probe_rate_0, 'rate'), (self.blocks_message_debug_0, 'print'))
         self.connect((self.blks2_packet_decoder_0, 0), (self.blocks_char_to_float_0, 0))
-        self.connect((self.blocks_char_to_float_0, 0), (self.blocks_wavfile_sink_0, 0))
-        self.connect((self.blocks_char_to_float_0, 0), (self.qtgui_time_sink_x_0_0, 0))
+        self.connect((self.blocks_char_to_float_0, 0), (self.rational_resampler_xxx_1, 0))
         self.connect((self.digital_gmsk_demod_0, 0), (self.blks2_packet_decoder_0, 0))
+        self.connect((self.rational_resampler_xxx_1, 0), (self.audio_sink_0, 0))
+        self.connect((self.rational_resampler_xxx_1, 0), (self.blocks_probe_rate_0, 0))
+        self.connect((self.rational_resampler_xxx_1, 0), (self.qtgui_time_sink_x_0_0, 0))
+        self.connect((self.rtlsdr_source_0, 0), (self.blocks_file_sink_0, 0))
         self.connect((self.rtlsdr_source_0, 0), (self.digital_gmsk_demod_0, 0))
         self.connect((self.rtlsdr_source_0, 0), (self.qtgui_const_sink_x_0, 0))
         self.connect((self.rtlsdr_source_0, 0), (self.qtgui_freq_sink_x_0, 0))
@@ -307,6 +324,12 @@ class rtlsdrRx(gr.top_block, Qt.QWidget):
 
     def set_EBW(self, EBW):
         self.EBW = EBW
+
+    def get_scale(self):
+        return self.scale
+
+    def set_scale(self, scale):
+        self.scale = scale
 
     def get_samp_rate(self):
         return self.samp_rate
