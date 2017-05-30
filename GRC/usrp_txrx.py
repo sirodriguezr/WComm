@@ -5,7 +5,7 @@
 # Title: Simulation
 # Author: Santiago Rodriguez
 # Description: Preliminary result for WComm final project
-# Generated: Sat May 20 19:02:21 2017
+# Generated: Sun May 28 18:34:42 2017
 ##################################################
 
 if __name__ == '__main__':
@@ -24,6 +24,7 @@ from gnuradio import audio
 from gnuradio import blocks
 from gnuradio import digital
 from gnuradio import eng_notation
+from gnuradio import filter
 from gnuradio import gr
 from gnuradio import qtgui
 from gnuradio import uhd
@@ -66,7 +67,8 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.sps = sps = 16
+        self.sps = sps = 32
+        self.scale = scale = 2**15
         self.samp_rate = samp_rate = 2e6
         self.pyl_lenght = pyl_lenght = 512
         self.audio_sr = audio_sr = 16e3
@@ -94,6 +96,16 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
         self.controls_grid_layout_2 = Qt.QGridLayout()
         self.controls_layout_2.addLayout(self.controls_grid_layout_2)
         self.controls.addTab(self.controls_widget_2, 'Const')
+        self.controls_widget_3 = Qt.QWidget()
+        self.controls_layout_3 = Qt.QBoxLayout(Qt.QBoxLayout.TopToBottom, self.controls_widget_3)
+        self.controls_grid_layout_3 = Qt.QGridLayout()
+        self.controls_layout_3.addLayout(self.controls_grid_layout_3)
+        self.controls.addTab(self.controls_widget_3, 'Data')
+        self.controls_widget_4 = Qt.QWidget()
+        self.controls_layout_4 = Qt.QBoxLayout(Qt.QBoxLayout.TopToBottom, self.controls_widget_4)
+        self.controls_grid_layout_4 = Qt.QGridLayout()
+        self.controls_layout_4.addLayout(self.controls_grid_layout_4)
+        self.controls.addTab(self.controls_widget_4, 'fmmod')
         self.top_layout.addWidget(self.controls)
         self.uhd_usrp_source_0 = uhd.usrp_source(
         	",".join(("", "")),
@@ -115,6 +127,12 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
         self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
         self.uhd_usrp_sink_0.set_center_freq(CF, 0)
         self.uhd_usrp_sink_0.set_gain(Gain_tx, 0)
+        self.rational_resampler_xxx_0 = filter.rational_resampler_fff(
+                interpolation=1,
+                decimation=2,
+                taps=None,
+                fractional_bw=None,
+        )
         self.qtgui_time_sink_x_0_0 = qtgui.time_sink_f(
         	1024, #size
         	samp_rate, #samp_rate
@@ -171,7 +189,7 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
         	1 #number of inputs
         )
         self.qtgui_freq_sink_x_0.set_update_time(0.10)
-        self.qtgui_freq_sink_x_0.set_y_axis(-140, 10)
+        self.qtgui_freq_sink_x_0.set_y_axis(-170, -15)
         self.qtgui_freq_sink_x_0.set_y_label('Relative Gain', 'dB')
         self.qtgui_freq_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
         self.qtgui_freq_sink_x_0.enable_autoscale(False)
@@ -186,7 +204,7 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
         if "complex" == "float" or "complex" == "msg_float":
           self.qtgui_freq_sink_x_0.set_plot_pos_half(not True)
 
-        labels = ['', '', '', '', '',
+        labels = ['Tx:GMSK', 'Rx:GMSK', '', '', '',
                   '', '', '', '', '']
         widths = [1, 1, 1, 1, 1,
                   1, 1, 1, 1, 1]
@@ -261,9 +279,10 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
         	verbose=False,
         	log=False,
         )
-        self.blocks_wavfile_sink_0 = blocks.wavfile_sink('audio_Rx', 1, int(audio_sr), 8)
+        self.blocks_probe_rate_0 = blocks.probe_rate(gr.sizeof_char*1, 500.0, 0.15)
         self.blocks_multiply_const_vxx_0_0 = blocks.multiply_const_vcc((0, ))
-        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc((0.8, ))
+        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc((0.2, ))
+        self.blocks_message_debug_0 = blocks.message_debug()
         self.blocks_float_to_char_0 = blocks.float_to_char(1, 2**8)
         self.blocks_char_to_float_0 = blocks.char_to_float(1, 2**8)
         self.blocks_add_xx_0 = blocks.add_vcc(1)
@@ -288,18 +307,20 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
         ##################################################
         # Connections
         ##################################################
+        self.msg_connect((self.blocks_probe_rate_0, 'rate'), (self.blocks_message_debug_0, 'print'))
         self.connect((self.analog_sig_source_x_0, 0), (self.blocks_multiply_const_vxx_0_0, 0))
-        self.connect((self.audio_source_0, 0), (self.blocks_float_to_char_0, 0))
+        self.connect((self.audio_source_0, 0), (self.rational_resampler_xxx_0, 0))
         self.connect((self.blks2_packet_decoder_0, 0), (self.blocks_char_to_float_0, 0))
         self.connect((self.blks2_packet_encoder_0, 0), (self.digital_gmsk_mod_0, 0))
         self.connect((self.blocks_add_xx_0, 0), (self.uhd_usrp_sink_0, 0))
-        self.connect((self.blocks_char_to_float_0, 0), (self.blocks_wavfile_sink_0, 0))
         self.connect((self.blocks_char_to_float_0, 0), (self.qtgui_time_sink_x_0_0, 0))
         self.connect((self.blocks_float_to_char_0, 0), (self.blks2_packet_encoder_0, 0))
+        self.connect((self.blocks_float_to_char_0, 0), (self.blocks_probe_rate_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_add_xx_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0_0, 0), (self.blocks_add_xx_0, 1))
         self.connect((self.digital_gmsk_demod_0, 0), (self.blks2_packet_decoder_0, 0))
         self.connect((self.digital_gmsk_mod_0, 0), (self.blocks_multiply_const_vxx_0, 0))
+        self.connect((self.rational_resampler_xxx_0, 0), (self.blocks_float_to_char_0, 0))
         self.connect((self.uhd_usrp_source_0, 0), (self.digital_gmsk_demod_0, 0))
         self.connect((self.uhd_usrp_source_0, 0), (self.qtgui_const_sink_x_0, 0))
         self.connect((self.uhd_usrp_source_0, 0), (self.qtgui_freq_sink_x_0, 0))
@@ -314,6 +335,12 @@ class usrp_txrx(gr.top_block, Qt.QWidget):
 
     def set_sps(self, sps):
         self.sps = sps
+
+    def get_scale(self):
+        return self.scale
+
+    def set_scale(self, scale):
+        self.scale = scale
 
     def get_samp_rate(self):
         return self.samp_rate
